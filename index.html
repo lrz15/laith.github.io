@@ -1,41 +1,58 @@
+
 <!DOCTYPE html>
-<html>
+<html lang="ar" dir="rtl">
 <head>
-  <title>شواحة للخدمات الموسيقية</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>احترافات جيامي - المشغل الموحد</title>
+    <style>
+        body { background: black; color: white; text-align: center; font-family: sans-serif; padding: 20px; }
+        .playlist { list-style: none; padding: 0; margin-top: 30px; }
+        .playlist li { 
+            padding: 15px; 
+            border: 1px solid #333; 
+            margin: 5px; 
+            cursor: pointer; 
+            transition: 0.3s;
+            border-radius: 8px;
+        }
+        .playlist li:hover { background: #222; border-color: #555; }
+        .active { background: #333 !important; color: #00d1ff; }
+        audio { width: 100%; max-width: 400px; margin-top: 20px; }
+    </style>
 </head>
-<body style="background:black; color:white; text-align:center; font-family:sans-serif;">
+<body>
 
-  <h1>🎧 شواحيات جباعي</h1>
+    <h1>🎧 احترافات جيامي</h1>
 
-  <p>يا ريت ترضي يا ريت</p>
-  <audio controls>
-    <source src="song1.mp3" type="audio/mpeg">
-  </audio>
+    <div id="player-container">
+        <p id="now-playing">اختر أغنية للتشغيل</p>
+        <audio id="main-audio" controls>
+            <source id="audio-source" src="" type="audio/mpeg">
+            متصفحك لا يدعم مشغل الصوت.
+        </audio>
+    </div>
 
-    <p> ياحبيبي قلبي مال </p>
-  <audio controls>
-    <source src="song2.mp3" type="audio/mpeg">
-  </audio>
-  
-    <p> عايشة وحدا بلاك </p>
-  <audio controls>
-    <source src="song3.mp3" type="audio/mpeg">
-  </audio>
+    <ul class="playlist">
+        <li onclick="playSong('song1.mp3', 'يا زيد ارضي يا وطن')">يا زيد ارضي يا وطن</li>
+        <li onclick="playSong('song2.mp3', 'يا حبيبي قلبي مال')">يا حبيبي قلبي مال</li>
+        <li onclick="playSong('song3.mp3', 'عايشة وحلا رقاد')">عايشة وحلا رقاد</li>
+        <li onclick="playSong('song4.mp3', 'الأغنية الرابعة')">الأغنية الرابعة</li>
+    </ul>
 
-   <p> الاغنية الرابعة </p>
-  <audio controls>
-    <source src="song4.mp3" type="audio/mpeg">
-  </audio>
+    <script>
+        function playSong(file, title) {
+            const audio = document.getElementById('main-audio');
+            const source = document.getElementById('audio-source');
+            const titleDisplay = document.getElementById('now-playing');
 
-   <p> الاغنية الخامسة </p>
-  <audio controls>
-    <source src="song5.mp3" type="audio/mpeg">
-  </audio>
+            source.src = file;
+            titleDisplay.innerText = "تشغيل الآن: " + title;
+            
+            audio.load(); // تحميل الملف الجديد
+            audio.play(); // تشغيل تلقائي
+        }
+    </script>
 
-  <p> الاغنية السادسة </p>
-  <audio controls>
-    <source src="song6.mp3" type="audio/*mpeg">
-  </audio>
-  
 </body>
 </html>
