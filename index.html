@@ -1,57 +1,141 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>احترافات جيامي - المشغل الموحد</title>
+    <title>مشغل جيامي الاحترافي</title>
     <style>
-        body { background: black; color: white; text-align: center; font-family: sans-serif; padding: 20px; }
-        .playlist { list-style: none; padding: 0; margin-top: 30px; }
-        .playlist li { 
-            padding: 15px; 
-            border: 1px solid #333; 
-            margin: 5px; 
-            cursor: pointer; 
-            transition: 0.3s;
-            border-radius: 8px;
+        :root {
+            --primary-color: #00d1ff;
+            --bg-dark: #0f0f0f;
+            --card-bg: #1e1e1e;
         }
-        .playlist li:hover { background: #222; border-color: #555; }
-        .active { background: #333 !important; color: #00d1ff; }
-        audio { width: 100%; max-width: 400px; margin-top: 20px; }
+
+        body { 
+            background-color: var(--bg-dark); 
+            color: white; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .player-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        h1 { font-size: 1.5rem; margin-bottom: 20px; color: var(--primary-color); }
+
+        #now-playing { font-size: 0.9rem; margin-bottom: 15px; opacity: 0.8; }
+
+        /* تعديل شكل المشغل الافتراضي */
+        audio { 
+            width: 100%; 
+            filter: invert(100%) hue-rotate(180deg) brightness(1.5); /* خدعة لتغيير لون المشغل الافتراضي ليناسب الثيم المظلم */
+            height: 40px;
+        }
+
+        .playlist { 
+            width: 90%;
+            max-width: 450px;
+            list-style: none; 
+            padding: 0; 
+        }
+
+        .playlist li { 
+            background: #1a1a1a;
+            padding: 15px; 
+            margin: 8px 0; 
+            cursor: pointer; 
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .playlist li:hover { 
+            background: #252525; 
+            transform: scale(1.02);
+            border-color: var(--primary-color);
+        }
+
+        .playlist li.active { 
+            background: rgba(0, 209, 255, 0.1); 
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .playlist li::after {
+            content: '▶';
+            font-size: 0.8rem;
+            opacity: 0.5;
+        }
     </style>
 </head>
 <body>
 
-    <h1>🎧 احترافات جيامي</h1>
-
-    <div id="player-container">
-        <p id="now-playing">اختر أغنية للتشغيل</p>
+    <div class="player-card">
+        <h1>🎧 مشغل احترافات جيامي</h1>
+        <p id="now-playing">اختر أغنية للبدء</p>
         <audio id="main-audio" controls>
             <source id="audio-source" src="" type="audio/mpeg">
-            متصفحك لا يدعم مشغل الصوت.
         </audio>
     </div>
 
-    <ul class="playlist">
-        <li onclick="playSong('song1.mp3', 'يا زيد ارضي يا وطن')">يا زيد ارضي يا وطن</li>
-        <li onclick="playSong('song2.mp3', 'يا حبيبي قلبي مال')">يا حبيبي قلبي مال</li>
-        <li onclick="playSong('song3.mp3', 'عايشة وحلا رقاد')">عايشة وحلا رقاد</li>
-        <li onclick="playSong('song4.mp3', 'الأغنية الرابعة')">الأغنية الرابعة</li>
+    <ul class="playlist" id="playlist">
+        <li onclick="selectSong(0)" data-src="song1.mp3">يا زيد ارضي يا وطن</li>
+        <li onclick="selectSong(1)" data-src="song2.mp3">يا حبيبي قلبي مال</li>
+        <li onclick="selectSong(2)" data-src="song3.mp3">عايشة وحلا رقاد</li>
+        <li onclick="selectSong(3)" data-src="song4.mp3">الأغنية الرابعة</li>
+        <li onclick="selectSong(4)" data-src="song5.mp3">الأغنية الخامسة</li>
     </ul>
 
     <script>
-        function playSong(file, title) {
-            const audio = document.getElementById('main-audio');
-            const source = document.getElementById('audio-source');
-            const titleDisplay = document.getElementById('now-playing');
+        const audio = document.getElementById('main-audio');
+        const playlistItems = document.querySelectorAll('.playlist li');
+        let currentSongIndex = 0;
 
-            source.src = file;
-            titleDisplay.innerText = "تشغيل الآن: " + title;
+        function selectSong(index) {
+            currentSongIndex = index;
+            const selectedItem = playlistItems[index];
+            const songSrc = selectedItem.getAttribute('data-src');
+            const songTitle = selectedItem.innerText;
+
+            // تحديث الواجهة
+            document.getElementById('audio-source').src = songSrc;
+            document.getElementById('now-playing').innerText = "تشغيل الآن: " + songTitle;
             
-            audio.load(); // تحميل الملف الجديد
-            audio.play(); // تشغيل تلقائي
+            // تمييز الأغنية المختارة في القائمة
+            playlistItems.forEach(item => item.classList.remove('active'));
+            selectedItem.classList.add('active');
+
+            audio.load();
+            audio.play();
         }
+
+        // السر هنا: الانتقال التلقائي عند انتهاء الأغنية
+        audio.onended = function() {
+            currentSongIndex++; // زيادة العداد
+            if (currentSongIndex < playlistItems.length) {
+                selectSong(currentSongIndex); // تشغيل التالية
+            } else {
+                currentSongIndex = 0; // العودة للأولى (اختياري)
+                selectSong(currentSongIndex);
+            }
+        };
     </script>
 
 </body>
