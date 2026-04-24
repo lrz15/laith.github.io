@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشغل جيامي الاحترافي</title>
+    <title>شواحة للموسيقى</title>
     <style>
         :root {
             --primary-color: #00d1ff;
@@ -14,129 +14,189 @@
         body { 
             background-color: var(--bg-dark); 
             color: white; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: sans-serif;
             display: flex;
-            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            padding: 20px;
+            height: 100vh;
             margin: 0;
         }
 
         .player-card {
             background: var(--card-bg);
             padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            width: 90%;
-            max-width: 450px;
+            border-radius: 25px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            width: 85%;
+            max-width: 350px;
             text-align: center;
-            margin-bottom: 20px;
             border: 1px solid #333;
         }
 
-        h1 { font-size: 1.5rem; margin-bottom: 20px; color: var(--primary-color); }
+        h1 { font-size: 1.1rem; color: var(--primary-color); margin-bottom: 5px; }
+        #now-playing { font-size: 1rem; margin-bottom: 20px; font-weight: bold; }
 
-        #now-playing { font-size: 0.9rem; margin-bottom: 15px; opacity: 0.8; }
-
-        /* تعديل شكل المشغل الافتراضي */
-        audio { 
-            width: 100%; 
-            filter: invert(100%) hue-rotate(180deg) brightness(1.5); /* خدعة لتغيير لون المشغل الافتراضي ليناسب الثيم المظلم */
-            height: 40px;
+        /* تنسيق شريط التقدم */
+        .progress-container {
+            width: 100%;
+            background: #333;
+            height: 6px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            cursor: pointer;
+            position: relative;
         }
 
-        .playlist { 
-            width: 90%;
-            max-width: 450px;
-            list-style: none; 
-            padding: 0; 
+        .progress-bar {
+            background: var(--primary-color);
+            width: 0%;
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.1s linear;
         }
 
-        .playlist li { 
-            background: #1a1a1a;
-            padding: 15px; 
-            margin: 8px 0; 
-            cursor: pointer; 
-            border-radius: 12px;
+        .time-info {
             display: flex;
             justify-content: space-between;
+            font-size: 0.75rem;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
+
+        /* الأزرار */
+        .controls {
+            display: flex;
+            justify-content: center;
             align-items: center;
-            transition: all 0.3s ease;
-            border: 1px solid transparent;
+            gap: 20px;
         }
 
-        .playlist li:hover { 
-            background: #252525; 
-            transform: scale(1.02);
-            border-color: var(--primary-color);
+        .btn {
+            background: #2a2a2a;
+            border: none;
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .playlist li.active { 
-            background: rgba(0, 209, 255, 0.1); 
-            border-color: var(--primary-color);
-            color: var(--primary-color);
-            font-weight: bold;
-        }
+        .btn:hover { background: var(--primary-color); color: black; }
+        .play-btn { width: 65px; height: 65px; font-size: 1.5rem; background: var(--primary-color); color: black; }
 
-        .playlist li::after {
-            content: '▶';
-            font-size: 0.8rem;
-            opacity: 0.5;
-        }
+        audio { display: none; }
     </style>
 </head>
 <body>
 
     <div class="player-card">
-        <h1>🎧 مشغل احترافات جيامي</h1>
-        <p id="now-playing">اختر أغنية للبدء</p>
-        <audio id="main-audio" controls>
+        <h1>🎧 شواحة للخدمات الموسيقية</h1>
+        <p id="now-playing">تحميل...</p>
+        
+        <div class="progress-container" id="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+            <div class="time-info">
+                <span id="current-time">0:00</span>
+                <span id="duration">0:00</span>
+            </div>
+        </div>
+
+        <audio id="main-audio">
             <source id="audio-source" src="" type="audio/mpeg">
         </audio>
+
+        <div class="controls">
+            <button class="btn" onclick="prevSong()">⏮</button>
+            <button class="btn play-btn" id="playPauseBtn" onclick="togglePlay()">▶</button>
+            <button class="btn" onclick="nextSong()">⏭</button>
+        </div>
     </div>
 
-    <ul class="playlist" id="playlist">
-        <li onclick="selectSong(0)" data-src="song1.mp3">يا زيد ارضي يا وطن</li>
-        <li onclick="selectSong(1)" data-src="song2.mp3">يا حبيبي قلبي مال</li>
-        <li onclick="selectSong(2)" data-src="song3.mp3">عايشة وحلا رقاد</li>
-        <li onclick="selectSong(3)" data-src="song4.mp3">الأغنية الرابعة</li>
-        <li onclick="selectSong(4)" data-src="song5.mp3">الأغنية الخامسة</li>
-    </ul>
-
     <script>
-        const audio = document.getElementById('main-audio');
-        const playlistItems = document.querySelectorAll('.playlist li');
+        const playlist = [
+            { src: "song1.mp3", title: "يا ريت ترضي يا ريت" },
+            { src: "song2.mp3", title: "يا حبيبي قلبي مال" },
+            { src: "song4.mp3", title: "الاغنية الرابعة" },
+            { src: "song5.mp3", title: "الاغنية الخامسة" },
+            { src: "song6.mp3", title: "الاغنية السادسة" },
+            { src: "song7.mp3", title: "الاغنية السابعة" },
+            { src: "song3.mp3", title: "عايشة وحدا بلاك" }
+        ];
+
         let currentSongIndex = 0;
+        const audio = document.getElementById('main-audio');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const titleDisplay = document.getElementById('now-playing');
+        const progressBar = document.getElementById('progress-bar');
+        const progressContainer = document.getElementById('progress-container');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationEl = document.getElementById('duration');
 
-        function selectSong(index) {
-            currentSongIndex = index;
-            const selectedItem = playlistItems[index];
-            const songSrc = selectedItem.getAttribute('data-src');
-            const songTitle = selectedItem.innerText;
-
-            // تحديث الواجهة
-            document.getElementById('audio-source').src = songSrc;
-            document.getElementById('now-playing').innerText = "تشغيل الآن: " + songTitle;
-            
-            // تمييز الأغنية المختارة في القائمة
-            playlistItems.forEach(item => item.classList.remove('active'));
-            selectedItem.classList.add('active');
-
-            audio.load();
-            audio.play();
+        function loadSong(index) {
+            const song = playlist[index];
+            audio.src = song.src;
+            titleDisplay.innerText = song.title;
         }
 
-        // السر هنا: الانتقال التلقائي عند انتهاء الأغنية
-        audio.onended = function() {
-            currentSongIndex++; // زيادة العداد
-            if (currentSongIndex < playlistItems.length) {
-                selectSong(currentSongIndex); // تشغيل التالية
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play();
+                playPauseBtn.innerText = "⏸";
             } else {
-                currentSongIndex = 0; // العودة للأولى (اختياري)
-                selectSong(currentSongIndex);
+                audio.pause();
+                playPauseBtn.innerText = "▶";
+            }
+        }
+
+        // تحديث شريط التقدم والوقت
+        audio.ontimeupdate = (e) => {
+            const { duration, currentTime } = e.srcElement;
+            const progressPercent = (currentTime / duration) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+
+            // حساب الوقت المتبقي والمنقضي
+            let curM = Math.floor(currentTime / 60);
+            let curS = Math.floor(currentTime % 60);
+            if (curS < 10) curS = `0${curS}`;
+            currentTimeEl.innerText = `${curM}:${curS}`;
+
+            if(duration) {
+                let durM = Math.floor(duration / 60);
+                let durS = Math.floor(duration % 60);
+                if (durS < 10) durS = `0${durS}`;
+                durationEl.innerText = `${durM}:${durS}`;
             }
         };
-    </script>
 
+        // الضغط على شريط التقدم للتقديم والتأخير
+        progressContainer.onclick = (e) => {
+            const width = progressContainer.clientWidth;
+            const clickX = e.offsetX;
+            const duration = audio.duration;
+            audio.currentTime = (clickX / width) * duration;
+        };
+
+        function nextSong() {
+            currentSongIndex = (currentSongIndex + 1) % playlist.length;
+            loadSong(currentSongIndex);
+            audio.play();
+            playPauseBtn.innerText = "⏸";
+        }
+
+        function prevSong() {
+            currentSongIndex = (currentSongIndex - 1 + playlist.length) % playlist.length;
+            loadSong(currentSongIndex);
+            audio.play();
+            playPauseBtn.innerText = "⏸";
+        }
+
+        audio.onended = nextSong;
+
+        window.onload = () => loadSong(currentSongIndex);
+    </script>
 </body>
 </html>
