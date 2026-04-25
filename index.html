@@ -1,41 +1,147 @@
-‎<!DOCTYPE html>
-‎<html>
-‎<head>
-‎  <title>شواحة للخدمات الموسيقية</title>
-‎</head>
-‎<body style="background:black; color:white; text-align:center; font-family:sans-serif;">
-‎
-‎  <h1>🎧 شواحيات جباعي</h1>
-‎
-‎  <p>يا ريت ترضي يا ريت</p>
-‎  <audio controls>
-‎    <source src="song1.mp3" type="audio/mpeg">
-‎  </audio>
-‎
-‎    <p> ياحبيبي قلبي مال </p>
-‎  <audio controls>
-‎    <source src="song2.mp3" type="audio/mpeg">
-‎  </audio>
-‎  
-‎    <p> عايشة وحدا بلاك </p>
-‎  <audio controls>
-‎    <source src="song3.mp3" type="audio/mpeg">
-‎  </audio>
-‎
-‎   <p> الاغنية الرابعة </p>
-‎  <audio controls>
-‎    <source src="song4.mp3" type="audio/mpeg">
-‎  </audio>
-‎
-‎   <p> الاغنية الخامسة </p>
-‎  <audio controls>
-‎    <source src="song5.mp3" type="audio/mpeg">
-‎  </audio>
-‎
-‎  <p> الاغنية السادسة </p>
-‎  <audio controls>
-‎    <source src="song6.mp3" type="audio/*mpeg">
-‎  </audio>
-‎  
-‎</body>
-‎</html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>شواحة للخدمات الموسيقية | Professional Player</title>
+    <style>
+        :root {
+            --primary-color: #1db954; /* لون أخضر موسيقي */
+            --bg-dark: #121212;
+            --card-bg: #1e1e1e;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding-bottom: 100px; /* مساحة للمشغل السفلي */
+        }
+
+        h1 {
+            margin-top: 30px;
+            color: var(--primary-color);
+            font-size: 2.5rem;
+        }
+
+        /* حاوية قائمة الأغاني */
+        .playlist {
+            width: 90%;
+            max-width: 600px;
+            background: var(--card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .song-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            transition: 0.3s;
+        }
+
+        .song-item:hover {
+            background: #282828;
+        }
+
+        .song-item.active {
+            color: var(--primary-color);
+            border-right: 4px solid var(--primary-color);
+        }
+
+        /* شريط التحكم السفلي */
+        .player-controls {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: #181818;
+            padding: 20px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .current-info {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        audio {
+            width: 80%;
+            max-width: 800px;
+            filter: invert(100%) hue-rotate(180deg) brightness(1.5); /* تلوين المشغل الافتراضي */
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>🎧 شواحيات جباعي</h1>
+    <p>اختر أغنيتك المفضلة واستمتع</p>
+
+    <div class="playlist" id="playlist">
+        <div class="song-item" onclick="playSong('song1.mp3', 'يا ريت ترضي يا ريت', this)">
+            <span>يا ريت ترضي يا ريت</span>
+            <span>▶</span>
+        </div>
+        <div class="song-item" onclick="playSong('song2.mp3', 'يا حبيبي قلبي مال', this)">
+            <span>يا حبيبي قلبي مال</span>
+            <span>▶</span>
+        </div>
+        <div class="song-item" onclick="playSong('song3.mp3', 'عايشة وحدا بلاك', this)">
+            <span>عايشة وحدا بلاك</span>
+            <span>▶</span>
+        </div>
+        <div class="song-item" onclick="playSong('song4.mp3', 'الأغنية الرابعة', this)">
+            <span>الأغنية الرابعة</span>
+            <span>▶</span>
+        </div>
+        <div class="song-item" onclick="playSong('song5.mp3', 'الأغنية الخامسة', this)">
+            <span>الأغنية الخامسة</span>
+            <span>▶</span>
+        </div>
+        <div class="song-item" onclick="playSong('song6.mp3', 'الأغنية السادسة', this)">
+            <span>الأغنية السادسة</span>
+            <span>▶</span>
+        </div>
+    </div>
+
+    <div class="player-controls">
+        <div class="current-info" id="current-title">جاري الانتظار...</div>
+        <audio id="main-player" controls>
+            <source src="" type="audio/mpeg">
+            متصفحك لا يدعم مشغل الصوت.
+        </audio>
+    </div>
+
+    <script>
+        const player = document.getElementById('main-player');
+        const titleDisplay = document.getElementById('current-title');
+
+        function playSong(file, title, element) {
+            // تحديث الملف الصوتي
+            player.src = file;
+            titleDisplay.innerText = "تشغيل الآن: " + title;
+            
+            // تشغيل الأغنية فوراً
+            player.play();
+
+            // تحديث التنسيق (إزالة الـ active من البقية وإضافته للمختار)
+            document.querySelectorAll('.song-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            element.classList.add('active');
+        }
+    </script>
+
+</body>
+</html>
