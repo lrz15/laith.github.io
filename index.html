@@ -1,147 +1,106 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>شواحة للخدمات الموسيقية | Professional Player</title>
-    <style>
-        :root {
-            --primary-color: #1db954; /* لون أخضر موسيقي */
-            --bg-dark: #121212;
-            --card-bg: #1e1e1e;
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            padding-bottom: 100px; /* مساحة للمشغل السفلي */
-        }
-
-        h1 {
-            margin-top: 30px;
-            color: var(--primary-color);
-            font-size: 2.5rem;
-        }
-
-        /* حاوية قائمة الأغاني */
-        .playlist {
-            width: 90%;
-            max-width: 600px;
-            background: var(--card-bg);
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .song-item {
-            padding: 15px 20px;
-            border-bottom: 1px solid #333;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            transition: 0.3s;
-        }
-
-        .song-item:hover {
-            background: #282828;
-        }
-
-        .song-item.active {
-            color: var(--primary-color);
-            border-right: 4px solid var(--primary-color);
-        }
-
-        /* شريط التحكم السفلي */
-        .player-controls {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            background: #181818;
-            padding: 20px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.8);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .current-info {
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        audio {
-            width: 80%;
-            max-width: 800px;
-            filter: invert(100%) hue-rotate(180deg) brightness(1.5); /* تلوين المشغل الافتراضي */
-        }
-
-    </style>
-</head>
-<body>
-
-    <h1>🎧 شواحيات جباعي</h1>
-    <p>اختر أغنيتك المفضلة واستمتع</p>
-
-    <div class="playlist" id="playlist">
-        <div class="song-item" onclick="playSong('song1.mp3', 'يا ريت ترضي يا ريت', this)">
-            <span>يا ريت ترضي يا ريت</span>
-            <span>▶</span>
-        </div>
-        <div class="song-item" onclick="playSong('song2.mp3', 'يا حبيبي قلبي مال', this)">
-            <span>يا حبيبي قلبي مال</span>
-            <span>▶</span>
-        </div>
-        <div class="song-item" onclick="playSong('song3.mp3', 'عايشة وحدا بلاك', this)">
-            <span>عايشة وحدا بلاك</span>
-            <span>▶</span>
-        </div>
-        <div class="song-item" onclick="playSong('song4.mp3', 'الأغنية الرابعة', this)">
-            <span>الأغنية الرابعة</span>
-            <span>▶</span>
-        </div>
-        <div class="song-item" onclick="playSong('song5.mp3', 'الأغنية الخامسة', this)">
-            <span>الأغنية الخامسة</span>
-            <span>▶</span>
-        </div>
-        <div class="song-item" onclick="playSong('song6.mp3', 'الأغنية السادسة', this)">
-            <span>الأغنية السادسة</span>
-            <span>▶</span>
-        </div>
+<div class="playlist-card" style="margin-bottom: 10px; padding: 15px; border: 1px dashed var(--primary-color);">
+    <p style="margin-top: 0; font-size: 0.9rem; color: var(--primary-color);">➕ إضافة أغنية جديدة (رابط مباشر):</p>
+    <div style="display: flex; gap: 10px;">
+        <input type="text" id="external-url" placeholder="ضع رابط الملف الصوتي هنا..." 
+               style="flex-grow: 1; padding: 8px; border-radius: 5px; border: 1px solid #333; background: #000; color: #fff;">
+        <button onclick="addExternalSong()" 
+                style="background: var(--primary-color); border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">إضافة</button>
     </div>
+</div>
 
-    <div class="player-controls">
-        <div class="current-info" id="current-title">جاري الانتظار...</div>
-        <audio id="main-player" controls>
-            <source src="" type="audio/mpeg">
-            متصفحك لا يدعم مشغل الصوت.
-        </audio>
-    </div>
+<script>
+    // --- (نفس مصفوفة الأغاني السابقة مع إمكانية الزيادة) ---
+    let songsList = [
+        { id: 1, title: "يا ريت ترضي يا ريت", artist: "فنان 1", file: "song1.mp3", color: "#e74c3c" },
+        { id: 2, title: "يا حبيبي قلبي مال", artist: "فنان 2", file: "song2.mp3", color: "#3498db" },
+        { id: 3, title: "عايشة وحدا بلاك", artist: "فنان 3", file: "song3.mp3", color: "#9b59b6" },
+        { id: 4, title: "مقطوعة الأمل", artist: "شواحة", file: "song4.mp3", color: "#f1c40f" },
+    ];
 
-    <script>
-        const player = document.getElementById('main-player');
-        const titleDisplay = document.getElementById('current-title');
+    // ... (نفس المتغيرات السابقة) ...
+    const audio = document.getElementById('main-audio');
+    const playlistContainer = document.getElementById('playlist-items');
+    const playPauseBtn = document.getElementById('play-pause-btn');
+    const vinylDisk = document.getElementById('vinyl-disk');
 
-        function playSong(file, title, element) {
-            // تحديث الملف الصوتي
-            player.src = file;
-            titleDisplay.innerText = "تشغيل الآن: " + title;
-            
-            // تشغيل الأغنية فوراً
-            player.play();
+    let currentSongIndex = -1;
 
-            // تحديث التنسيق (إزالة الـ active من البقية وإضافته للمختار)
-            document.querySelectorAll('.song-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            element.classList.add('active');
+    // --- 1. دالة إضافة أغنية خارجية برابط ---
+    function addExternalSong() {
+        const urlInput = document.getElementById('external-url');
+        const url = urlInput.value.trim();
+        
+        if (url === "") {
+            alert("يرجى وضع رابط صحيح");
+            return;
         }
-    </script>
 
-</body>
-</html>
+        const newSong = {
+            id: songsList.length + 1,
+            title: "أغنية خارجية " + (songsList.length + 1),
+            artist: "رابط ويب",
+            file: url,
+            color: "#1db954"
+        };
+
+        songsList.push(newSong); // إضافة للمصفوفة
+        urlInput.value = ""; // تفريغ الحقل
+        buildPlaylist(); // إعادة بناء الواجهة لتظهر الأغنية الجديدة
+    }
+
+    // --- 2. دالة بناء القائمة (تم تحديثها لتفريغ القائمة أولاً) ---
+    function buildPlaylist() {
+        playlistContainer.innerHTML = ""; // تفريغ القديم
+        songsList.forEach((song, index) => {
+            const songItem = document.createElement('div');
+            songItem.className = 'song-item' + (index === currentSongIndex ? ' active' : '');
+            songItem.onclick = () => selectAndPlay(index);
+            songItem.innerHTML = `
+                <div class="song-index">${index + 1}</div>
+                <div class="song-info">
+                    <span class="song-title">${song.title}</span>
+                    <span class="song-artist">${song.artist}</span>
+                </div>
+                <div class="play-icon"><i class="fas fa-play-circle fa-lg"></i></div>
+            `;
+            playlistContainer.appendChild(songItem);
+        });
+    }
+
+    // --- 3. دالة التشغيل التالي (الميزة المطلوبة) ---
+    function nextSong() {
+        if (currentSongIndex < songsList.length - 1) {
+            selectAndPlay(currentSongIndex + 1);
+        } else {
+            // إذا كانت آخر أغنية، ابدأ من الأول
+            selectAndPlay(0);
+        }
+    }
+
+    // --- 4. مراقبة انتهاء الأغنية (Event Listener) ---
+    audio.addEventListener('ended', () => {
+        console.log("انتهت الأغنية، جاري تشغيل التالية...");
+        nextSong(); // استدعاء دالة التشغيل التالي فوراً
+    });
+
+    // ... (باقي الدوال السابقة: selectAndPlay, togglePlay, formatTime) ...
+    // تأكد من تحديث دالة selectAndPlay لتشمل buildPlaylist() لتحديث الـ active class
+    function selectAndPlay(index) {
+        currentSongIndex = index;
+        const song = songsList[index];
+        audio.src = song.file;
+        document.getElementById('current-title').innerText = song.title;
+        document.getElementById('current-artist').innerText = song.artist;
+        
+        buildPlaylist(); // لتحديث العلامة الخضراء (Active)
+        startPlayback();
+    }
+
+    function startPlayback() {
+        audio.play().catch(e => console.log("خطأ في التشغيل: تأكد من صحة الرابط"));
+        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        vinylDisk.classList.add('playing');
+    }
+
+    buildPlaylist();
+</script>
