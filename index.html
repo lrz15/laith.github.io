@@ -3,186 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مشغل موسيقى احترافي</title>
+    <title>دي جي شواحة PRO</title>
     <style>
-        /* تنسيق الصفحة العام */
         body {
-            background-color: #0f0f1a;
+            background-color: #0b0b14;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        /* حاوية المشغل */
-        .music-player {
-            background: linear-gradient(145deg, #1e1e2e, #23233a);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
             color: white;
-            padding: 40px;
-            border-radius: 30px;
+        }
+
+        .player-card {
+            background: #161625;
+            padding: 30px;
+            border-radius: 25px;
+            width: 320px;
             text-align: center;
-            width: 350px;
-            box-shadow: 20px 20px 60px #08080f, -5px -5px 20px #2a2a45;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            border: 1px solid #2a2a40;
         }
 
-        .track-art {
-            height: 200px;
-            width: 200px;
-            background-image: url('https://via.placeholder.com/200');
-            background-size: cover;
-            margin: 0 auto 20px;
-            border-radius: 20px;
-            box-shadow: 0px 10px 20px rgba(0,0,0,0.4);
-        }
-
-        .track-name {
-            font-size: 1.5rem;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .track-artist {
-            font-size: 1rem;
-            color: #aaa;
+        .visualizer {
+            height: 120px;
+            background: linear-gradient(to bottom, #00d2ff, #3a7bd5);
             margin-bottom: 20px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
 
-        /* أزرار التحكم */
-        .buttons {
+        .track-info h2 { margin: 10px 0 5px; font-size: 1.2rem; }
+        .track-info p { color: #888; font-size: 0.9rem; margin-bottom: 20px; }
+
+        .controls {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 25px;
-            margin-top: 20px;
+            gap: 20px;
         }
 
         button {
             background: none;
             border: none;
             color: #00d2ff;
-            font-size: 30px;
+            font-size: 25px;
             cursor: pointer;
-            transition: transform 0.2s, color 0.2s;
+            transition: 0.2s;
         }
 
-        button:hover {
-            color: #3a7bd5;
-            transform: scale(1.1);
-        }
+        button:hover { transform: scale(1.2); color: #fff; }
 
-        .playpause-track {
+        .play-btn {
             font-size: 50px;
-            color: #fff;
+            background: #00d2ff;
+            color: #161625;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-right: 5px; /* لتوسيط أيقونة المثلث */
         }
 
-        /* شريط التقدم */
-        .slider_container {
+        #progress-bar {
             width: 100%;
             margin-top: 20px;
-        }
-
-        .seek_slider {
-            width: 100%;
+            accent-color: #00d2ff;
             cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-<div class="music-player">
-    <div class="details">
-        <div class="track-art" id="track-art"></div>
-        <div class="track-name" id="track-name">اسم الأغنية</div>
-        <div class="track-artist" id="track-artist">اسم الفنان</div>
+<div class="player-card">
+    <div class="visualizer">MUSIC PLAYER</div>
+    
+    <div class="track-info">
+        <h2 id="title">جاري التحميل...</h2>
+        <p id="artist">قائمة التشغيل الخاصة بك</p>
     </div>
 
-    <div class="slider_container">
-        <input type="range" min="1" max="100" value="0" class="seek_slider" id="seek_slider" onchange="seekTo()">
-    </div>
+    <input type="range" id="progress-bar" value="0" max="100">
 
-    <div class="buttons">
-        <button onclick="prevTrack()">⏮</button>
-        <button class="playpause-track" id="playpause-btn" onclick="playpauseTrack()">▶</button>
-        <button onclick="nextTrack()">⏭</button>
+    <div class="controls">
+        <button onclick="prev()">⏮</button>
+        <button class="play-btn" id="play-trigger" onclick="togglePlay()">▶</button>
+        <button onclick="next()">⏭</button>
     </div>
-
-    <audio id="main-audio" src=""></audio>
 </div>
 
+<audio id="audio-player"></audio>
+
 <script>
-    let track_art = document.getElementById('track-art');
-    let track_name = document.getElementById('track-name');
-    let track_artist = document.getElementById('track-artist');
-    let curr_track = document.getElementById('main-audio');
-    let playpause_btn = document.getElementById('playpause-btn');
-    
-    let track_index = 0;
-    let isPlaying = false;
+    const audio = document.getElementById('audio-player');
+    const playBtn = document.getElementById('play-trigger');
+    const title = document.getElementById('title');
+    const progressBar = document.getElementById('progress-bar');
 
-    // قائمة الأغاني - استبدل الروابط بملفاتك الخاصة
-    const track_list = [
-        {
-            name: "بداية المشروع",
-            artist: "إنتاجك الموسيقي",
-            image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200",
-            path: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
-        },
-        {
-            name: "مقطوعة ثانية",
-            artist: "دي جي شواحة",
-            image: "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=200",
-            path: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+    let currentIndex = 1;
+    const totalSongs = 7;
+
+    function loadSong(index) {
+        title.innerText = "Song " + index;
+        audio.src = "song" + index + ".mp3";
+    }
+
+    function togglePlay() {
+        if (audio.paused) {
+            audio.play();
+            playBtn.innerText = "⏸";
+        } else {
+            audio.pause();
+            playBtn.innerText = "▶";
         }
-    ];
-
-    function loadTrack(index) {
-        curr_track.src = track_list[index].path;
-        curr_track.load();
-        track_name.textContent = track_list[index].name;
-        track_artist.textContent = track_list[index].artist;
-        track_art.style.backgroundImage = "url(" + track_list[index].image + ")";
     }
 
-    // تحميل أول أغنية عند البدء
-    loadTrack(track_index);
-
-    function playpauseTrack() {
-        if (!isPlaying) playTrack();
-        else pauseTrack();
+    function next() {
+        currentIndex = currentIndex < totalSongs ? currentIndex + 1 : 1;
+        loadSong(currentIndex);
+        audio.play();
+        playBtn.innerText = "⏸";
     }
 
-    function playTrack() {
-        curr_track.play();
-        isPlaying = true;
-        playpause_btn.innerHTML = "⏸"; 
+    function prev() {
+        currentIndex = currentIndex > 1 ? currentIndex - 1 : totalSongs;
+        loadSong(currentIndex);
+        audio.play();
+        playBtn.innerText = "⏸";
     }
 
-    function pauseTrack() {
-        curr_track.pause();
-        isPlaying = false;
-        playpause_btn.innerHTML = "▶";
-    }
+    // تحديث شريط التقدم
+    audio.ontimeupdate = () => {
+        const progress = (audio.currentTime / audio.duration) * 100;
+        progressBar.value = progress || 0;
+    };
 
-    function nextTrack() {
-        if (track_index < track_list.length - 1) track_index += 1;
-        else track_index = 0;
-        loadTrack(track_index);
-        playTrack();
-    }
+    // التحكم بالوقت من خلال الشريط
+    progressBar.oninput = () => {
+        const seekTime = (progressBar.value / 100) * audio.duration;
+        audio.currentTime = seekTime;
+    };
 
-    function prevTrack() {
-        if (track_index > 0) track_index -= 1;
-        else track_index = track_list.length - 1;
-        loadTrack(track_index);
-        playTrack();
-    }
+    // الانتقال التلقائي للأغنية التالية
+    audio.onended = () => next();
 
-    function seekTo() {
-        let seekto = curr_track.duration * (document.getElementById('seek_slider').value / 100);
-        curr_track.currentTime = seekto;
-    }
+    // تشغيل أول أغنية عند التحميل
+    loadSong(currentIndex);
 </script>
 
 </body>
