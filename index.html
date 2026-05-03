@@ -1,106 +1,189 @@
-<div class="playlist-card" style="margin-bottom: 10px; padding: 15px; border: 1px dashed var(--primary-color);">
-    <p style="margin-top: 0; font-size: 0.9rem; color: var(--primary-color);">➕ إضافة أغنية جديدة (رابط مباشر):</p>
-    <div style="display: flex; gap: 10px;">
-        <input type="text" id="external-url" placeholder="ضع رابط الملف الصوتي هنا..." 
-               style="flex-grow: 1; padding: 8px; border-radius: 5px; border: 1px solid #333; background: #000; color: #fff;">
-        <button onclick="addExternalSong()" 
-                style="background: var(--primary-color); border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold;">إضافة</button>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مشغل موسيقى احترافي</title>
+    <style>
+        /* تنسيق الصفحة العام */
+        body {
+            background-color: #0f0f1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* حاوية المشغل */
+        .music-player {
+            background: linear-gradient(145deg, #1e1e2e, #23233a);
+            color: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            width: 350px;
+            box-shadow: 20px 20px 60px #08080f, -5px -5px 20px #2a2a45;
+        }
+
+        .track-art {
+            height: 200px;
+            width: 200px;
+            background-image: url('https://via.placeholder.com/200');
+            background-size: cover;
+            margin: 0 auto 20px;
+            border-radius: 20px;
+            box-shadow: 0px 10px 20px rgba(0,0,0,0.4);
+        }
+
+        .track-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .track-artist {
+            font-size: 1rem;
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+
+        /* أزرار التحكم */
+        .buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        button {
+            background: none;
+            border: none;
+            color: #00d2ff;
+            font-size: 30px;
+            cursor: pointer;
+            transition: transform 0.2s, color 0.2s;
+        }
+
+        button:hover {
+            color: #3a7bd5;
+            transform: scale(1.1);
+        }
+
+        .playpause-track {
+            font-size: 50px;
+            color: #fff;
+        }
+
+        /* شريط التقدم */
+        .slider_container {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .seek_slider {
+            width: 100%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="music-player">
+    <div class="details">
+        <div class="track-art" id="track-art"></div>
+        <div class="track-name" id="track-name">اسم الأغنية</div>
+        <div class="track-artist" id="track-artist">اسم الفنان</div>
     </div>
+
+    <div class="slider_container">
+        <input type="range" min="1" max="100" value="0" class="seek_slider" id="seek_slider" onchange="seekTo()">
+    </div>
+
+    <div class="buttons">
+        <button onclick="prevTrack()">⏮</button>
+        <button class="playpause-track" id="playpause-btn" onclick="playpauseTrack()">▶</button>
+        <button onclick="nextTrack()">⏭</button>
+    </div>
+
+    <audio id="main-audio" src=""></audio>
 </div>
 
 <script>
-    // --- (نفس مصفوفة الأغاني السابقة مع إمكانية الزيادة) ---
-    let songsList = [
-        { id: 1, title: "يا ريت ترضي يا ريت", artist: "فنان 1", file: "song1.mp3", color: "#e74c3c" },
-        { id: 2, title: "يا حبيبي قلبي مال", artist: "فنان 2", file: "song2.mp3", color: "#3498db" },
-        { id: 3, title: "عايشة وحدا بلاك", artist: "فنان 3", file: "song3.mp3", color: "#9b59b6" },
-        { id: 4, title: "مقطوعة الأمل", artist: "شواحة", file: "song4.mp3", color: "#f1c40f" },
+    let track_art = document.getElementById('track-art');
+    let track_name = document.getElementById('track-name');
+    let track_artist = document.getElementById('track-artist');
+    let curr_track = document.getElementById('main-audio');
+    let playpause_btn = document.getElementById('playpause-btn');
+    
+    let track_index = 0;
+    let isPlaying = false;
+
+    // قائمة الأغاني - استبدل الروابط بملفاتك الخاصة
+    const track_list = [
+        {
+            name: "بداية المشروع",
+            artist: "إنتاجك الموسيقي",
+            image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200",
+            path: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+        },
+        {
+            name: "مقطوعة ثانية",
+            artist: "دي جي شواحة",
+            image: "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?w=200",
+            path: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+        }
     ];
 
-    // ... (نفس المتغيرات السابقة) ...
-    const audio = document.getElementById('main-audio');
-    const playlistContainer = document.getElementById('playlist-items');
-    const playPauseBtn = document.getElementById('play-pause-btn');
-    const vinylDisk = document.getElementById('vinyl-disk');
-
-    let currentSongIndex = -1;
-
-    // --- 1. دالة إضافة أغنية خارجية برابط ---
-    function addExternalSong() {
-        const urlInput = document.getElementById('external-url');
-        const url = urlInput.value.trim();
-        
-        if (url === "") {
-            alert("يرجى وضع رابط صحيح");
-            return;
-        }
-
-        const newSong = {
-            id: songsList.length + 1,
-            title: "أغنية خارجية " + (songsList.length + 1),
-            artist: "رابط ويب",
-            file: url,
-            color: "#1db954"
-        };
-
-        songsList.push(newSong); // إضافة للمصفوفة
-        urlInput.value = ""; // تفريغ الحقل
-        buildPlaylist(); // إعادة بناء الواجهة لتظهر الأغنية الجديدة
+    function loadTrack(index) {
+        curr_track.src = track_list[index].path;
+        curr_track.load();
+        track_name.textContent = track_list[index].name;
+        track_artist.textContent = track_list[index].artist;
+        track_art.style.backgroundImage = "url(" + track_list[index].image + ")";
     }
 
-    // --- 2. دالة بناء القائمة (تم تحديثها لتفريغ القائمة أولاً) ---
-    function buildPlaylist() {
-        playlistContainer.innerHTML = ""; // تفريغ القديم
-        songsList.forEach((song, index) => {
-            const songItem = document.createElement('div');
-            songItem.className = 'song-item' + (index === currentSongIndex ? ' active' : '');
-            songItem.onclick = () => selectAndPlay(index);
-            songItem.innerHTML = `
-                <div class="song-index">${index + 1}</div>
-                <div class="song-info">
-                    <span class="song-title">${song.title}</span>
-                    <span class="song-artist">${song.artist}</span>
-                </div>
-                <div class="play-icon"><i class="fas fa-play-circle fa-lg"></i></div>
-            `;
-            playlistContainer.appendChild(songItem);
-        });
+    // تحميل أول أغنية عند البدء
+    loadTrack(track_index);
+
+    function playpauseTrack() {
+        if (!isPlaying) playTrack();
+        else pauseTrack();
     }
 
-    // --- 3. دالة التشغيل التالي (الميزة المطلوبة) ---
-    function nextSong() {
-        if (currentSongIndex < songsList.length - 1) {
-            selectAndPlay(currentSongIndex + 1);
-        } else {
-            // إذا كانت آخر أغنية، ابدأ من الأول
-            selectAndPlay(0);
-        }
+    function playTrack() {
+        curr_track.play();
+        isPlaying = true;
+        playpause_btn.innerHTML = "⏸"; 
     }
 
-    // --- 4. مراقبة انتهاء الأغنية (Event Listener) ---
-    audio.addEventListener('ended', () => {
-        console.log("انتهت الأغنية، جاري تشغيل التالية...");
-        nextSong(); // استدعاء دالة التشغيل التالي فوراً
-    });
-
-    // ... (باقي الدوال السابقة: selectAndPlay, togglePlay, formatTime) ...
-    // تأكد من تحديث دالة selectAndPlay لتشمل buildPlaylist() لتحديث الـ active class
-    function selectAndPlay(index) {
-        currentSongIndex = index;
-        const song = songsList[index];
-        audio.src = song.file;
-        document.getElementById('current-title').innerText = song.title;
-        document.getElementById('current-artist').innerText = song.artist;
-        
-        buildPlaylist(); // لتحديث العلامة الخضراء (Active)
-        startPlayback();
+    function pauseTrack() {
+        curr_track.pause();
+        isPlaying = false;
+        playpause_btn.innerHTML = "▶";
     }
 
-    function startPlayback() {
-        audio.play().catch(e => console.log("خطأ في التشغيل: تأكد من صحة الرابط"));
-        playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
-        vinylDisk.classList.add('playing');
+    function nextTrack() {
+        if (track_index < track_list.length - 1) track_index += 1;
+        else track_index = 0;
+        loadTrack(track_index);
+        playTrack();
     }
 
-    buildPlaylist();
+    function prevTrack() {
+        if (track_index > 0) track_index -= 1;
+        else track_index = track_list.length - 1;
+        loadTrack(track_index);
+        playTrack();
+    }
+
+    function seekTo() {
+        let seekto = curr_track.duration * (document.getElementById('seek_slider').value / 100);
+        curr_track.currentTime = seekto;
+    }
 </script>
+
+</body>
+</html>
